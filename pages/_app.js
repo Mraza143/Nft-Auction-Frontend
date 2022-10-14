@@ -1,9 +1,14 @@
 import '../styles/globals.css'
 import Head from "next/head"
 import { NotificationProvider } from "web3uikit"
-
 import { MoralisProvider } from 'react-moralis'
+import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client"
 import Header from '../components/Header'
+
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  uri: process.env.NEXT_PUBLIC_SUBGRAPH_URL,
+})
 
 function MyApp({ Component, pageProps }) {
 
@@ -16,10 +21,12 @@ function MyApp({ Component, pageProps }) {
        </Head>
 
             <MoralisProvider initializeOnMount={false}>
+            <ApolloProvider client={client}>
             <NotificationProvider>
             <Header />
                     <Component {...pageProps} />
                 </NotificationProvider>
+                </ApolloProvider>
             </MoralisProvider>
 
    </div>

@@ -1,16 +1,16 @@
 import { gql } from "@apollo/client"
 
-const GET_ACTIVE_ITEMS = gql`
+const GET_ACTIVE_AUCTIONS = gql`
 {
-    activeItems(first: 5, where: { buyer: "0x0000000000000000000000000000000000000000" }) {
-      id
-      buyer
-      seller
-      nftAddress
-      tokenId
-      price
-    }
-  
+  auctions(where: { active : true}) {
+    id
+    nftSeller
+    nftAddress
+    tokenId
+    active
+    currentPrice
   }
+
+}
 `
-export default GET_ACTIVE_ITEMS
+export default GET_ACTIVE_AUCTIONS

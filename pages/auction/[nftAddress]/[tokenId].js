@@ -1,16 +1,20 @@
 import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useState, useEffect } from "react"
 import GET_SPECIFIC_AUCTION from "../../../constants/queries/GET_SPECIFIC_AUCTION"
+import { Form, useNotification, Button } from "web3uikit"
 import { useQuery } from "@apollo/client"
 import { useRouter } from "next/router"
 import nftAbi from "../../../constants/Erc721Mock.json"
 import { ethers } from "ethers"
+import styles from "../../../styles/Home.module.css"
+import nftAuctionAbi from "../../../constants/Auction.json"
+import networkMapping from "../../../constants/contractAddresses.json"
 
 
 export default function auction() {
     const router = useRouter()
     const { nftAddress, tokenId } = router.query
-    const { isWeb3Enabled } = useMoralis()
+    const { isWeb3Enabled , chainId } = useMoralis()
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
@@ -21,6 +25,47 @@ export default function auction() {
     } = useQuery(GET_SPECIFIC_AUCTION, {
         variables: { nftAddress, tokenId },
     })
+    const { runContractFunction } = useWeb3Contract()
+    const chainString = chainId ? parseInt(chainId).toString() : "31337"
+    const auctionAddress = networkMapping[chainString].Auction[0]
+    const dispatch = useNotification()
+
+    async function MakeBid(data) {
+        console.log("Making Bid...")
+        const msgVal = ethers.utils.parseUnits(data.data[0].inputResult, "ether").toString()
+        
+        
+        const makeBidOptions = {
+            abi: nftAuctionAbi,
+            contractAddress: auctionAddress,
+            functionName: "makeBid",
+            params: {
+                _nftContractAddress: nftAddress,
+                _tokenId: tokenId,
+            },
+            msgValue:msgVal
+
+        }
+
+        await runContractFunction({
+            params: makeBidOptions,
+            onSuccess: handleBidSuccess,
+            onError: (error) => console.log(error),
+        })
+    }
+
+    async function handleBidSuccess(tx) {
+        await tx.wait(1)
+        console.log("Bid Initialized. Please wait for about 30 seconds to see your bid in Bids Section  of this nft")
+        dispatch({
+            type: "success",
+            message: "Bid has been placed",
+            title: "Your bid has been made",
+            position: "topR",
+        })
+    }
+
+
     const { runContractFunction: getTokenURI } = useWeb3Contract({
         abi: nftAbi,
         contractAddress: nftAddress,
@@ -67,7 +112,7 @@ export default function auction() {
                                     <div>
                                         Price:{" "}
                                         <span className="">
-                                        ethers.utils.formatUnits(specificAuction.auctions[0].currentPrice, "ether")
+                                        
                                             {ethers.utils.formatUnits(specificAuction.auctions[0].currentPrice, "ether")}
                                         </span>
                                     </div>
@@ -78,6 +123,25 @@ export default function auction() {
                                         </span>
                                     </div>
                                     <div></div>
+                                </div>
+                                <div>
+                                <div className={styles.container}>
+            <Form
+            
+                onSubmit={MakeBid}
+                data={[
+                    {
+                        name: "Bid Price In Eth",
+                        type: "number",
+                        inputWidth: "50%",
+                        value: "",
+                        key: "msgVal",
+                    }
+                ]}
+                title="Make A Bid On this Nft"
+                id="Main Form"
+            />
+        </div>
                                 </div>
                             </div>
                         </div>

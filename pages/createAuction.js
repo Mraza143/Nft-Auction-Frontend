@@ -34,6 +34,8 @@ export default function Home() {
                 _minPrice: price,
                 interval:time
             },
+          
+            
         }
 
         await runContractFunction({

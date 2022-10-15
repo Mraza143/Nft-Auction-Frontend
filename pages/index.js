@@ -30,7 +30,7 @@ export default function Home() {
                         })
                     )
                 ) : (
-                    <div>Web3 Currently Not Enabled</div>
+                    <div>Hey Mate! Maybe Try connecting your metamask?</div>
                 )}
             </div>
         </div>

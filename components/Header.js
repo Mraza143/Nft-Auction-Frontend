@@ -9,7 +9,7 @@ export default function Header() {
                 <Link href="/">
                     <a className="mr-4 p-6">Home</a>
                 </Link>
-                <Link href="/sell-nft">
+                <Link href="/createAuction">
                     <a className="mr-4 p-6">Auction NFT</a>
                 </Link>
                 <ConnectButton moralisAuth={false} />

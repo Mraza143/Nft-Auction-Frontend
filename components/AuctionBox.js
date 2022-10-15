@@ -4,6 +4,8 @@ import nftAbi from "../constants/Erc721Mock.json"
 import Image from "next/image"
 import { Card, useNotification } from "web3uikit"
 import { ethers } from "ethers"
+import { useRouter } from "next/router";
+
 
 const truncateStr = (fullStr, strLen) => {
     if (fullStr.length <= strLen) return fullStr
@@ -20,6 +22,7 @@ const truncateStr = (fullStr, strLen) => {
 }
 
 export default function AuctionBox({ price, nftAddress, tokenId,  seller }) {
+    const router = useRouter();
     const { isWeb3Enabled, account } = useMoralis()
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
@@ -60,7 +63,7 @@ export default function AuctionBox({ price, nftAddress, tokenId,  seller }) {
     const formattedSellerAddress = truncateStr(seller || "", 15)
 
     const handleCardClick = () => {
-        console.log('c')
+        router.push(`/auction/${nftAddress}/${tokenId}`)
     }
 
     return (

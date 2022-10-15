@@ -2,18 +2,24 @@ import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useState, useEffect } from "react"
 import GET_SPECIFIC_AUCTION from "../../../constants/queries/GET_SPECIFIC_AUCTION"
 import { useQuery } from "@apollo/client"
-import { useRouter } from "next/router";
+import { useRouter } from "next/router"
 import nftAbi from "../../../constants/Erc721Mock.json"
+import { ethers } from "ethers"
+
 
 export default function auction() {
-    const router = useRouter();
-    const { nftAddress  , tokenId } = router.query;
-    const { isWeb3Enabled} = useMoralis()
+    const router = useRouter()
+    const { nftAddress, tokenId } = router.query
+    const { isWeb3Enabled } = useMoralis()
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
-    const { loading, error, data: specificAuction } = useQuery(GET_SPECIFIC_AUCTION,{
-        variables:{nftAddress, tokenId}
+    const {
+        loading,
+        error,
+        data: specificAuction,
+    } = useQuery(GET_SPECIFIC_AUCTION, {
+        variables: { nftAddress, tokenId },
     })
     const { runContractFunction: getTokenURI } = useWeb3Contract({
         abi: nftAbi,
@@ -24,7 +30,6 @@ export default function auction() {
         },
     })
 
- 
     async function updateUI() {
         const tokenURI = await getTokenURI()
         console.log(`The TokenURI is ${tokenURI}`)
@@ -44,7 +49,6 @@ export default function auction() {
             updateUI()
         }
     }, [isWeb3Enabled])
-    
 
     return (
         <div className="container mx-auto">
@@ -55,25 +59,32 @@ export default function auction() {
                         <div>Loading...</div>
                     ) : (
                         <div style={{ "min-height": "100vh" }}>
-                        <div className="flex ml-20 mt-20">
-                          <img src={imageURI} alt="" className="w-2/5" />
-                          <div className="text-xl ml-20 space-y-8 text-black shadow-2xl rounded-lg border-2 p-5">
-                            <div>Name: {tokenName}</div>
-                            <div>Description: {tokenDescription}</div>
-                            <div>
-                              Price: <span className="">{specificAuction.auctions[0].currentPrice + " ETH"}</span>
+                            <div className="flex ml-20 mt-20">
+                                <img src={imageURI} alt="" className="w-2/5" />
+                                <div className="text-xl ml-20 space-y-8 text-black shadow-2xl rounded-lg border-2 p-5">
+                                    <div>Name: {tokenName}</div>
+                                    <div>Description: {tokenDescription}</div>
+                                    <div>
+                                        Price:{" "}
+                                        <span className="">
+                                        ethers.utils.formatUnits(specificAuction.auctions[0].currentPrice, "ether")
+                                            {ethers.utils.formatUnits(specificAuction.auctions[0].currentPrice, "ether")}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        Nft Owner:{" "}
+                                        <span className="text-sm">
+                                            {specificAuction.auctions[0].nftSeller}
+                                        </span>
+                                    </div>
+                                    <div></div>
+                                </div>
                             </div>
-                            <div>
-                              Nft Owner: <span className="text-sm">{specificAuction.auctions[0].nftSeller}</span>
-                            </div>
-                            <div>
-                              
-                              </div>
-                          </div>
                         </div>
-                      </div>
-                )):
-                <div>Web3 Currently Not Enabled</div>}
+                    )
+                ) : (
+                    <div>Web3 Currently Not Enabled</div>
+                )}
             </div>
         </div>
     )

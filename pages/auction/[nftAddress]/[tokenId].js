@@ -1,14 +1,15 @@
 import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useState, useEffect } from "react"
-import GET_SPECIFIC_AUCTION from "../../../constants/queries/GET_SPECIFIC_AUCTION"
-import { Form, useNotification, Button } from "web3uikit"
+import { ethers } from "ethers"
 import { useQuery } from "@apollo/client"
 import { useRouter } from "next/router"
+import { Form, useNotification, Button } from "web3uikit"
 import nftAbi from "../../../constants/Erc721Mock.json"
-import { ethers } from "ethers"
 import styles from "../../../styles/Home.module.css"
 import nftAuctionAbi from "../../../constants/Auction.json"
 import networkMapping from "../../../constants/contractAddresses.json"
+import GET_SPECIFIC_AUCTION from "../../../constants/queries/GET_SPECIFIC_AUCTION"
+import GET_AUCTION_BIDS from "../../../constants/queries/GET_AUCTION_BIDS"
 
 
 export default function auction() {
@@ -19,12 +20,19 @@ export default function auction() {
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
     const {
+        data: specificBids,
+        loading:loadingBids
+    } = useQuery(GET_AUCTION_BIDS, {
+        variables: { nftAddress, tokenId },
+    })
+    const {
         loading,
         error,
         data: specificAuction,
     } = useQuery(GET_SPECIFIC_AUCTION, {
         variables: { nftAddress, tokenId },
     })
+    console.log(specificBids?.bids)
     const { runContractFunction } = useWeb3Contract()
     const chainString = chainId ? parseInt(chainId).toString() : "31337"
     const auctionAddress = networkMapping[chainString].Auction[0]
@@ -32,9 +40,7 @@ export default function auction() {
 
     async function MakeBid(data) {
         console.log("Making Bid...")
-        const msgVal = ethers.utils.parseUnits(data.data[0].inputResult, "ether").toString()
-        
-        
+        const msgVal = ethers.utils.parseUnits(data.data[0].inputResult, "ether").toString()        
         const makeBidOptions = {
             abi: nftAuctionAbi,
             contractAddress: auctionAddress,
@@ -103,6 +109,7 @@ export default function auction() {
                     loading || !specificAuction ? (
                         <div>Loading...</div>
                     ) : (
+
                         <div style={{ "min-height": "100vh" }}>
                             <div className="flex ml-20 mt-20">
                                 <img src={imageURI} alt="" className="w-2/5" />
@@ -144,6 +151,21 @@ export default function auction() {
         </div>
                                 </div>
                             </div>
+                            {loadingBids?( <div>ff</div>) :(
+                               specificBids.bids.map((bid) => {
+
+                                    const { bidMaker, price } = bid
+                                    return (
+                                       <div>
+                                        <h1>These are the bids which have been made on this nft Auction</h1>
+                                        <div className="flex ml-20 mt-20">
+                                            <p>{bidMaker}</p>
+                                            <p>{ethers.utils.formatUnits(price, "ether")}</p>
+                                        </div>
+                                        </div>
+                                    )
+                                }))
+}
                         </div>
                     )
                 ) : (

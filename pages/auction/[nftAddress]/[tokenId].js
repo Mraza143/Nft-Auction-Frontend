@@ -19,6 +19,8 @@ export default function auction() {
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
+    const [date ,setDate]=  useState("");
+    const [auctionEnded,setAuctionEnded] = useState(false)
     const {
         data: specificBids,
         loading:loadingBids
@@ -81,17 +83,49 @@ export default function auction() {
         },
     })
 
+
+    const { runContractFunction: getStartingTime } = useWeb3Contract({
+        abi: nftAuctionAbi,
+        contractAddress: auctionAddress,
+        functionName: "getStartingTimeOfAuction",
+        params: {
+            _nftContractAddress: nftAddress,
+            _tokenId: tokenId,
+        },
+    })
+
+    const { runContractFunction: getAuctionInterval } = useWeb3Contract({
+        abi: nftAuctionAbi,
+        contractAddress: auctionAddress,
+        functionName: "getIntervalOfNftAuction",
+        params: {
+            _nftContractAddress: nftAddress,
+            _tokenId: tokenId,
+        },
+    })
+
     async function updateUI() {
         const tokenURI = await getTokenURI()
         console.log(`The TokenURI is ${tokenURI}`)
+        const startingTime =  await getStartingTime()
+        //console.log(`auction was started at  ${startingTime}`)
+        const durationOfAuction = await getAuctionInterval()
+        //console.log(`duration of auction is ${durationOfAuction}`)
+        const currentTime = Math.round(Date.now() / 1000)
+        //console.log(`Current time is ${currentTime}`)
+        if(startingTime+durationOfAuction<currentTime < currentTime){
+            setAuctionEnded(true)
+        }
+
         if (tokenURI) {
             const requestURL = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
             const tokenURIResponse = await (await fetch(requestURL)).json()
-            const imageURI = tokenURIResponse.image
+            const imageURI = tokenURIResponse?.image
             const imageURIURL = imageURI.replace("ipfs://", "https://ipfs.io/ipfs/")
             setImageURI(imageURIURL)
-            setTokenName(tokenURIResponse.name)
-            setTokenDescription(tokenURIResponse.description)
+            
+            setTokenName(tokenURIResponse?.name)
+            setTokenDescription(tokenURIResponse?.description)
         }
     }
 
@@ -110,7 +144,7 @@ export default function auction() {
                         <div>Loading...</div>
                     ) : (
 
-                        <div style={{ "min-height": "100vh" }}>
+                        <div style={{ "minHeight": "100vh" }}>
                             <div className="flex ml-20 mt-20">
                                 <img src={imageURI} alt="" className="w-2/5" />
                                 <div className="text-xl ml-20 space-y-8 text-black shadow-2xl rounded-lg border-2 p-5">
@@ -161,6 +195,7 @@ export default function auction() {
                                         <div className="flex ml-20 mt-20">
                                             <p>{bidMaker}</p>
                                             <p>{ethers.utils.formatUnits(price, "ether")}</p>
+                                            {console.log(date)}
                                         </div>
                                         </div>
                                     )

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { ethers } from "ethers"
 import { useQuery } from "@apollo/client"
 import { useRouter } from "next/router"
-import { Form, useNotification, Button } from "web3uikit"
+import { Form, useNotification, Button, Tag } from "web3uikit"
 import styles from "../../../styles/Home.module.css"
 //Contract address along with the abi of the contract
 import nftAuctionAbi from "../../../constants/Auction.json"
@@ -143,7 +143,7 @@ export default function auction() {
             position: "topR",
         })
     }
-    //Function will be called when the nft auction winner need to receive his nft 
+    //Function will be called when the nft auction winner need to receive his nft
     //Integrates the "receiveNft" function of the Contract
     //Can be only called by the Auction winner
 
@@ -266,20 +266,20 @@ export default function auction() {
 
     return (
         <div className="container mx-auto">
-            <h1 className="py-4 px-4 font-bold text-2xl">The details of the Nft</h1>
+            <h1 className="py-12 px-4 font-bold text-2xl  ml-auto">The details of the Nft</h1>
             <div className="flex flex-wrap">
                 {isWeb3Enabled ? (
                     loading || !specificAuction ? (
                         <div>Loading...</div>
                     ) : (
-                        <div style={{ minHeight: "100vh" }}>
+                        <div style={{ minHeight: "80vh" }}>
                             <div className="flex ml-20 mt-20">
                                 <img src={imageURI} alt="" className="w-2/5" />
-                                <div className="text-xl ml-20 space-y-8 text-black shadow-2xl rounded-lg border-2 p-5">
+                                <div className="text-xl text-white ml-20 space-y-8 text-black shadow-2xl rounded-lg border-2 p-5 bg-[#16de66]">
                                     <div>Name: {tokenName}</div>
                                     <div>Description: {tokenDescription}</div>
                                     <div>
-                                        Price:{" "}
+                                        Current Price:{" "}
                                         <span className="">
                                             {ethers.utils.formatUnits(
                                                 specificAuction.auctions[0].currentPrice,
@@ -298,6 +298,9 @@ export default function auction() {
                                 <div>
                                     <div className={styles.container}>
                                         <Form
+                                            buttonConfig={{
+                                                theme: "primary",
+                                            }}
                                             onSubmit={MakeBid}
                                             data={[
                                                 {
@@ -308,7 +311,7 @@ export default function auction() {
                                                     key: "msgVal",
                                                 },
                                             ]}
-                                            title="Make A Bid On this Nft"
+                                            title="Make A Bid"
                                             id="Main Form"
                                         />
                                     </div>
@@ -322,16 +325,19 @@ export default function auction() {
                                         const { bidMaker, price } = bid
                                         return (
                                             <div>
-                                                <h1>
+                                                <h1 className="py-12 px-4 font-bold text-2xl  ml-12">
                                                     These are the bids which have been made on this
                                                     nft Auction
                                                 </h1>
-                                                <div className="flex ml-20 mt-20">
-                                                    <p>{bidMaker}</p>
-                                                    <p>
-                                                        {ethers.utils.formatUnits(price, "ether")}
-                                                    </p>
-                                                    {console.log(date)}
+                                                <div className="flex ml-20  space-x-12">
+                                                    <Tag color="blue" text={bidMaker} />
+                                                    <Tag
+                                                        color="blue"
+                                                        text={ethers.utils.formatUnits(
+                                                            price,
+                                                            "ether"
+                                                        )}
+                                                    />
                                                 </div>
                                             </div>
                                         )
@@ -339,19 +345,32 @@ export default function auction() {
                                 )}
                                 {auctionEnded ? (
                                     isOwnedByUser ? (
-                                        <div>
-                                            <div>
-                                                <Button onClick={WithdrawWinningBid}>
-                                                    Withdraw Winning Bid{" "}
-                                                </Button>
+                                        <div className="ml-auto ">
+                                            <div className="mt-6">
+                                                <Button
+                                                    size="large"
+                                                    theme="primary"
+                                                    onClick={WithdrawWinningBid}
+                                                    text="Withdraw Winning Bid"
+                                                ></Button>
                                             </div>
                                             <div>
-                                                <Button onClick={WithdrawNft}>Withdraw Nft</Button>
+                                                <Button
+                                                    size="large"
+                                                    theme="primary"
+                                                    onClick={WithdrawNft}
+                                                    text="Withdraw Nft"
+                                                ></Button>
                                             </div>
                                         </div>
                                     ) : isAuctionWinner ? (
-                                        <div>
-                                            <Button onClick={ClaimNft}>Claim Your Nft</Button>
+                                        <div className="ml-auto mt-6 ">
+                                            <Button
+                                                size="large"
+                                                theme="primary"
+                                                onClick={ClaimNft}
+                                                text="Claim Your Nft"
+                                            ></Button>
                                         </div>
                                     ) : (
                                         <div> </div>

@@ -15,12 +15,13 @@ import GET_AUCTION_BIDS from "../../../constants/queries/GET_AUCTION_BIDS"
 export default function auction() {
     const router = useRouter()
     const { nftAddress, tokenId } = router.query
-    const { isWeb3Enabled , chainId } = useMoralis()
+    const { isWeb3Enabled , chainId  , account } = useMoralis()
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
     const [date ,setDate]=  useState("");
     const [auctionEnded,setAuctionEnded] = useState(false)
+    const [isOwnedByUser,setIsOwnedByUser] = useState(false)
     const {
         data: specificBids,
         loading:loadingBids
@@ -73,6 +74,39 @@ export default function auction() {
         })
     }
 
+        async function WithdrawWinningBid() {
+        console.log("Withdrawing Winning Bid")
+        const WithdrawWinningBidOptions = {
+            abi: nftAuctionAbi,
+            contractAddress: auctionAddress,
+            functionName: "withdrawWinningBid",
+            params: {
+                _nftContractAddress: nftAddress,
+                _tokenId: tokenId,
+            },
+
+
+        }
+
+        await runContractFunction({
+            params: WithdrawWinningBidOptions,
+            onSuccess: WithdrawWinningBidSuccess,
+            onError: (error) => console.log(error),
+        })
+    }
+    //http://localhost:3000/auction/0x07e9610747745651b70da71600525a799b6002a0/2
+
+    async function WithdrawWinningBidSuccess(tx) {
+        await tx.wait(1)
+        console.log("Bid Initialized. Please wait for about 30 seconds to see your bid in Bids Section  of this nft")
+        dispatch({
+            type: "success",
+            message: "Bid has been placed",
+            title: "Your bid has been made",
+            position: "topR",
+        })
+    }
+
 
     const { runContractFunction: getTokenURI } = useWeb3Contract({
         abi: nftAbi,
@@ -104,6 +138,16 @@ export default function auction() {
         },
     })
 
+    const { runContractFunction: getSellerOfTheNft } = useWeb3Contract({
+        abi: nftAuctionAbi,
+        contractAddress: auctionAddress,
+        functionName: "getSellerOfTheNft",
+        params: {
+            _nftContractAddress: nftAddress,
+            _tokenId: tokenId,
+        },
+    })
+
     async function updateUI() {
         const tokenURI = await getTokenURI()
         console.log(`The TokenURI is ${tokenURI}`)
@@ -116,6 +160,10 @@ export default function auction() {
         if(startingTime+durationOfAuction<currentTime < currentTime){
             setAuctionEnded(true)
         }
+        const seller = await getSellerOfTheNft()
+        console.log(`seller ${seller}`)
+        console.log(account)
+        account==seller?.toLowerCase()?setIsOwnedByUser(true):setIsOwnedByUser(false)
 
         if (tokenURI) {
             const requestURL = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
@@ -127,6 +175,7 @@ export default function auction() {
             setTokenName(tokenURIResponse?.name)
             setTokenDescription(tokenURIResponse?.description)
         }
+        
     }
 
     useEffect(() => {
@@ -185,6 +234,7 @@ export default function auction() {
         </div>
                                 </div>
                             </div>
+                            <div className="flex">
                             {loadingBids?( <div>ff</div>) :(
                                specificBids.bids.map((bid) => {
 
@@ -200,7 +250,21 @@ export default function auction() {
                                         </div>
                                     )
                                 }))
+
 }
+{auctionEnded?(
+    isOwnedByUser?(
+        <div>
+        <div><button onClick={WithdrawWinningBid}>Withdraw Winning Bid </button></div>
+        <div><button>Withdraw Nft</button></div>
+        </div>
+    ):(
+        <div><button>Claim Your Nft</button></div>
+    )
+):(
+                                        <div> </div>
+                                    )}
+                        </div>
                         </div>
                     )
                 ) : (

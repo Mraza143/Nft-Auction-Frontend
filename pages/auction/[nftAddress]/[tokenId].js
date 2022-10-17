@@ -4,10 +4,12 @@ import { ethers } from "ethers"
 import { useQuery } from "@apollo/client"
 import { useRouter } from "next/router"
 import { Form, useNotification, Button } from "web3uikit"
-import nftAbi from "../../../constants/Erc721Mock.json"
 import styles from "../../../styles/Home.module.css"
+//Contract address along with the abi of the contract
 import nftAuctionAbi from "../../../constants/Auction.json"
 import networkMapping from "../../../constants/contractAddresses.json"
+import nftAbi from "../../../constants/Erc721Mock.json"
+//Queries to receive the data from theGraph Indexer
 import GET_SPECIFIC_AUCTION from "../../../constants/queries/GET_SPECIFIC_AUCTION"
 import GET_AUCTION_BIDS from "../../../constants/queries/GET_AUCTION_BIDS"
 
@@ -18,13 +20,20 @@ export default function auction() {
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
+    //Date variable to check if the auction has ended
+    //Initially would be in unix format
     const [date, setDate] = useState("")
+    //bool for conditional rendering to show auction ended functions
     const [auctionEnded, setAuctionEnded] = useState(false)
+    //bool for conditional rendering for some functions for the nft Sellet(Auction creator)
     const [isOwnedByUser, setIsOwnedByUser] = useState(false)
+    //bool for conditional rendering for some functions for the nft Auction Winner(Highest bid maker)
     const [isAuctionWinner, setisAuctionWinner] = useState(false)
+    //Getting the bids on a specific Nft Auction
     const { data: specificBids, loading: loadingBids } = useQuery(GET_AUCTION_BIDS, {
         variables: { nftAddress, tokenId },
     })
+    //Getting all the details of the nft auction
     const { loading, data: specificAuction } = useQuery(GET_SPECIFIC_AUCTION, {
         variables: { nftAddress, tokenId },
     })
@@ -33,6 +42,8 @@ export default function auction() {
     const auctionAddress = networkMapping[chainString].Auction[0]
     const dispatch = useNotification()
 
+    //Function will be called when use makes a bid
+    //Integrates the "makeBid" function of the Contract
     async function MakeBid(data) {
         console.log("Making Bid...")
         const msgVal = ethers.utils.parseUnits(data.data[0].inputResult, "ether").toString()
@@ -53,7 +64,7 @@ export default function auction() {
             onError: (error) => console.log(error),
         })
     }
-
+    //If the make bid was called succesfully to show the notification to user
     async function handleBidSuccess(tx) {
         await tx.wait(1)
         console.log(
@@ -66,7 +77,9 @@ export default function auction() {
             position: "topR",
         })
     }
-
+    //Function will be called when the nft seller wants to withdraw Highest Bid
+    //Integrates the "withdrawWinningBid" function of the Contract
+    //Can be only called by the Auction creator
     async function WithdrawWinningBid() {
         console.log("Withdrawing Winning Bid")
         const WithdrawWinningBidOptions = {
@@ -95,6 +108,9 @@ export default function auction() {
             position: "topR",
         })
     }
+    //Function will be called when the nft seller wants to withdraw nft as auction ended with no bids
+    //Integrates the "withdrawNft" function of the Contract
+    //Can be only called by the Auction creator
 
     async function WithdrawNft() {
         console.log("Withdrawing Nft after unsuccesful Auction")
@@ -127,6 +143,9 @@ export default function auction() {
             position: "topR",
         })
     }
+    //Function will be called when the nft auction winner need to receive his nft 
+    //Integrates the "receiveNft" function of the Contract
+    //Can be only called by the Auction winner
 
     async function ClaimNft() {
         console.log("Claiming Nft after Winning Auction")
@@ -160,6 +179,7 @@ export default function auction() {
         })
     }
 
+    //Function to get the nft details stored in IPFS
     const { runContractFunction: getTokenURI } = useWeb3Contract({
         abi: nftAbi,
         contractAddress: nftAddress,
@@ -168,7 +188,7 @@ export default function auction() {
             tokenId: tokenId,
         },
     })
-
+    //Function to get the starting time of the auction
     const { runContractFunction: getStartingTime } = useWeb3Contract({
         abi: nftAuctionAbi,
         contractAddress: auctionAddress,
@@ -178,7 +198,7 @@ export default function auction() {
             _tokenId: tokenId,
         },
     })
-
+    //Function to get the winner of the auction
     const { runContractFunction: getWinnerOfAuction } = useWeb3Contract({
         abi: nftAuctionAbi,
         contractAddress: auctionAddress,
@@ -188,7 +208,7 @@ export default function auction() {
             _tokenId: tokenId,
         },
     })
-
+    //Function to get the duration for which the auction will continue
     const { runContractFunction: getAuctionInterval } = useWeb3Contract({
         abi: nftAuctionAbi,
         contractAddress: auctionAddress,
@@ -198,7 +218,7 @@ export default function auction() {
             _tokenId: tokenId,
         },
     })
-
+    //Function to get the seller of the nft
     const { runContractFunction: getSellerOfTheNft } = useWeb3Contract({
         abi: nftAuctionAbi,
         contractAddress: auctionAddress,
@@ -208,7 +228,8 @@ export default function auction() {
             _tokenId: tokenId,
         },
     })
-
+    //Will be called inside useEffect
+    //To display the appropriate function for the user
     async function updateUI() {
         const tokenURI = await getTokenURI()
         console.log(`The TokenURI is ${tokenURI}`)

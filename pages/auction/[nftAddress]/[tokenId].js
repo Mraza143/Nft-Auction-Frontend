@@ -11,32 +11,23 @@ import networkMapping from "../../../constants/contractAddresses.json"
 import GET_SPECIFIC_AUCTION from "../../../constants/queries/GET_SPECIFIC_AUCTION"
 import GET_AUCTION_BIDS from "../../../constants/queries/GET_AUCTION_BIDS"
 
-
 export default function auction() {
     const router = useRouter()
     const { nftAddress, tokenId } = router.query
-    const { isWeb3Enabled , chainId  , account } = useMoralis()
+    const { isWeb3Enabled, chainId, account } = useMoralis()
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
     const [tokenDescription, setTokenDescription] = useState("")
-    const [date ,setDate]=  useState("");
-    const [auctionEnded,setAuctionEnded] = useState(false)
-    const [isOwnedByUser,setIsOwnedByUser] = useState(false)
-    const [isAuctionWinner,setisAuctionWinner] = useState(false)
-    const {
-        data: specificBids,
-        loading:loadingBids
-    } = useQuery(GET_AUCTION_BIDS, {
+    const [date, setDate] = useState("")
+    const [auctionEnded, setAuctionEnded] = useState(false)
+    const [isOwnedByUser, setIsOwnedByUser] = useState(false)
+    const [isAuctionWinner, setisAuctionWinner] = useState(false)
+    const { data: specificBids, loading: loadingBids } = useQuery(GET_AUCTION_BIDS, {
         variables: { nftAddress, tokenId },
     })
-    const {
-        loading,
-        error,
-        data: specificAuction,
-    } = useQuery(GET_SPECIFIC_AUCTION, {
+    const { loading, data: specificAuction } = useQuery(GET_SPECIFIC_AUCTION, {
         variables: { nftAddress, tokenId },
     })
-    console.log(specificBids?.bids)
     const { runContractFunction } = useWeb3Contract()
     const chainString = chainId ? parseInt(chainId).toString() : "31337"
     const auctionAddress = networkMapping[chainString].Auction[0]
@@ -44,7 +35,7 @@ export default function auction() {
 
     async function MakeBid(data) {
         console.log("Making Bid...")
-        const msgVal = ethers.utils.parseUnits(data.data[0].inputResult, "ether").toString()        
+        const msgVal = ethers.utils.parseUnits(data.data[0].inputResult, "ether").toString()
         const makeBidOptions = {
             abi: nftAuctionAbi,
             contractAddress: auctionAddress,
@@ -53,8 +44,7 @@ export default function auction() {
                 _nftContractAddress: nftAddress,
                 _tokenId: tokenId,
             },
-            msgValue:msgVal
-
+            msgValue: msgVal,
         }
 
         await runContractFunction({
@@ -66,7 +56,9 @@ export default function auction() {
 
     async function handleBidSuccess(tx) {
         await tx.wait(1)
-        console.log("Bid Initialized. Please wait for about 30 seconds to see your bid in Bids Section  of this nft")
+        console.log(
+            "Bid Initialized. Please wait for about 30 seconds to see your bid in Bids Section  of this nft"
+        )
         dispatch({
             type: "success",
             message: "Bid has been placed",
@@ -75,7 +67,7 @@ export default function auction() {
         })
     }
 
-        async function WithdrawWinningBid() {
+    async function WithdrawWinningBid() {
         console.log("Withdrawing Winning Bid")
         const WithdrawWinningBidOptions = {
             abi: nftAuctionAbi,
@@ -98,12 +90,11 @@ export default function auction() {
         console.log("You have received the winning bid in your wallet")
         dispatch({
             type: "success",
-            message: "Bid has been placed",
-            title: "Your bid has been made",
+            message: "Your have received the winning bid in your wallet",
+            title: "Bid Received",
             position: "topR",
         })
     }
-
 
     async function WithdrawNft() {
         console.log("Withdrawing Nft after unsuccesful Auction")
@@ -126,15 +117,16 @@ export default function auction() {
 
     async function WithdrawNftSuccess(tx) {
         await tx.wait(1)
-        console.log("You have received the nft in your wallet as the auction ended without no bids")
+        console.log(
+            "You have received the nft in your wallet as the auction ended without no bids"
+        )
         dispatch({
             type: "success",
-            message: "You have reeeived the nft",
+            message: "You have received the nft",
             title: "Nft Received",
             position: "topR",
         })
     }
-
 
     async function ClaimNft() {
         console.log("Claiming Nft after Winning Auction")
@@ -155,9 +147,11 @@ export default function auction() {
         })
     }
 
-    async function  ClaimNftSuccess(tx) {
+    async function ClaimNftSuccess(tx) {
         await tx.wait(1)
-        console.log("You have received the nft in your wallet as the as your made the highest winning bid")
+        console.log(
+            "You have received the nft in your wallet as the as your made the highest winning bid"
+        )
         dispatch({
             type: "success",
             message: "You have reeeived the nft",
@@ -165,7 +159,6 @@ export default function auction() {
             position: "topR",
         })
     }
-
 
     const { runContractFunction: getTokenURI } = useWeb3Contract({
         abi: nftAbi,
@@ -176,7 +169,6 @@ export default function auction() {
         },
     })
 
-
     const { runContractFunction: getStartingTime } = useWeb3Contract({
         abi: nftAuctionAbi,
         contractAddress: auctionAddress,
@@ -186,7 +178,6 @@ export default function auction() {
             _tokenId: tokenId,
         },
     })
-
 
     const { runContractFunction: getWinnerOfAuction } = useWeb3Contract({
         abi: nftAuctionAbi,
@@ -221,22 +212,19 @@ export default function auction() {
     async function updateUI() {
         const tokenURI = await getTokenURI()
         console.log(`The TokenURI is ${tokenURI}`)
-        const startingTime =  await getStartingTime()
-        //console.log(`auction was started at  ${startingTime}`)
+        const startingTime = await getStartingTime()
         const durationOfAuction = await getAuctionInterval()
-        //console.log(`duration of auction is ${durationOfAuction}`)
         const currentTime = Math.round(Date.now() / 1000)
-        //console.log(`Current time is ${currentTime}`)
-        if(startingTime+durationOfAuction<currentTime < currentTime){
+        if (startingTime + durationOfAuction < currentTime < currentTime) {
             setAuctionEnded(true)
         }
         const seller = await getSellerOfTheNft()
         console.log(`seller ${seller}`)
         console.log(account)
-        account==seller?.toLowerCase()?setIsOwnedByUser(true):setIsOwnedByUser(false)
+        account == seller?.toLowerCase() ? setIsOwnedByUser(true) : setIsOwnedByUser(false)
 
         const winner = await getWinnerOfAuction()
-        account==winner?.toLowerCase()?setisAuctionWinner(true): setisAuctionWinner(false)
+        account == winner?.toLowerCase() ? setisAuctionWinner(true) : setisAuctionWinner(false)
 
         if (tokenURI) {
             const requestURL = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
@@ -244,11 +232,9 @@ export default function auction() {
             const imageURI = tokenURIResponse?.image
             const imageURIURL = imageURI.replace("ipfs://", "https://ipfs.io/ipfs/")
             setImageURI(imageURIURL)
-            
             setTokenName(tokenURIResponse?.name)
             setTokenDescription(tokenURIResponse?.description)
         }
-        
     }
 
     useEffect(() => {
@@ -265,8 +251,7 @@ export default function auction() {
                     loading || !specificAuction ? (
                         <div>Loading...</div>
                     ) : (
-
-                        <div style={{ "minHeight": "100vh" }}>
+                        <div style={{ minHeight: "100vh" }}>
                             <div className="flex ml-20 mt-20">
                                 <img src={imageURI} alt="" className="w-2/5" />
                                 <div className="text-xl ml-20 space-y-8 text-black shadow-2xl rounded-lg border-2 p-5">
@@ -275,8 +260,10 @@ export default function auction() {
                                     <div>
                                         Price:{" "}
                                         <span className="">
-                                        
-                                            {ethers.utils.formatUnits(specificAuction.auctions[0].currentPrice, "ether")}
+                                            {ethers.utils.formatUnits(
+                                                specificAuction.auctions[0].currentPrice,
+                                                "ether"
+                                            )}
                                         </span>
                                     </div>
                                     <div>
@@ -288,59 +275,70 @@ export default function auction() {
                                     <div></div>
                                 </div>
                                 <div>
-                                <div className={styles.container}>
-            <Form
-            
-                onSubmit={MakeBid}
-                data={[
-                    {
-                        name: "Bid Price In Eth",
-                        type: "number",
-                        inputWidth: "50%",
-                        value: "",
-                        key: "msgVal",
-                    }
-                ]}
-                title="Make A Bid On this Nft"
-                id="Main Form"
-            />
-        </div>
+                                    <div className={styles.container}>
+                                        <Form
+                                            onSubmit={MakeBid}
+                                            data={[
+                                                {
+                                                    name: "Bid Price In Eth",
+                                                    type: "number",
+                                                    inputWidth: "50%",
+                                                    value: "",
+                                                    key: "msgVal",
+                                                },
+                                            ]}
+                                            title="Make A Bid On this Nft"
+                                            id="Main Form"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex">
-                            {loadingBids?( <div>ff</div>) :(
-                               specificBids.bids.map((bid) => {
-
-                                    const { bidMaker, price } = bid
-                                    return (
-                                       <div>
-                                        <h1>These are the bids which have been made on this nft Auction</h1>
-                                        <div className="flex ml-20 mt-20">
-                                            <p>{bidMaker}</p>
-                                            <p>{ethers.utils.formatUnits(price, "ether")}</p>
-                                            {console.log(date)}
+                                {loadingBids ? (
+                                    <div>ff</div>
+                                ) : (
+                                    specificBids.bids.map((bid) => {
+                                        const { bidMaker, price } = bid
+                                        return (
+                                            <div>
+                                                <h1>
+                                                    These are the bids which have been made on this
+                                                    nft Auction
+                                                </h1>
+                                                <div className="flex ml-20 mt-20">
+                                                    <p>{bidMaker}</p>
+                                                    <p>
+                                                        {ethers.utils.formatUnits(price, "ether")}
+                                                    </p>
+                                                    {console.log(date)}
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                )}
+                                {auctionEnded ? (
+                                    isOwnedByUser ? (
+                                        <div>
+                                            <div>
+                                                <Button onClick={WithdrawWinningBid}>
+                                                    Withdraw Winning Bid{" "}
+                                                </Button>
+                                            </div>
+                                            <div>
+                                                <Button onClick={WithdrawNft}>Withdraw Nft</Button>
+                                            </div>
                                         </div>
+                                    ) : isAuctionWinner ? (
+                                        <div>
+                                            <Button onClick={ClaimNft}>Claim Your Nft</Button>
                                         </div>
-                                    )
-                                }))
-
-}
-{auctionEnded?(
-    isOwnedByUser?(
-        <div>
-        <div><button onClick={WithdrawWinningBid}>Withdraw Winning Bid </button></div>
-        <div><button onClick={WithdrawNft}>Withdraw Nft</button></div>
-        </div>
-    ):(
-        isAuctionWinner?(<div><button onClick={ClaimNft}>Claim Your Nft</button></div>):(
-            <div> </div>
-        )
-        
-    )
-):(
+                                    ) : (
                                         <div> </div>
-                                    )}
-                        </div>
+                                    )
+                                ) : (
+                                    <div> </div>
+                                )}
+                            </div>
                         </div>
                     )
                 ) : (

@@ -142,6 +142,40 @@ export default function auction() {
     }
 
 
+    async function ClaimNft() {
+        console.log("Claiming Nft after Winning Auction")
+        const ClaimNftOptions = {
+            abi: nftAuctionAbi,
+            contractAddress: auctionAddress,
+            functionName: "receiveNft",
+            params: {
+                _nftContractAddress: nftAddress,
+                _tokenId: tokenId,
+            },
+
+
+        }
+
+        await runContractFunction({
+            params: ClaimNftOptions,
+            onSuccess: ClaimNftSuccess,
+            onError: (error) => console.log(error),
+        })
+    }
+    //http://localhost:3000/auction/0x07e9610747745651b70da71600525a799b6002a0/2
+
+    async function  ClaimNftSuccess(tx) {
+        await tx.wait(1)
+        console.log("You have received the nft in your wallet as the as your made the highest winning bid")
+        dispatch({
+            type: "success",
+            message: "You have reeeived the nft",
+            title: "Auction Wonnnnnnnn!!!!!!!",
+            position: "topR",
+        })
+    }
+
+
     const { runContractFunction: getTokenURI } = useWeb3Contract({
         abi: nftAbi,
         contractAddress: nftAddress,
@@ -293,7 +327,7 @@ export default function auction() {
         <div><button onClick={WithdrawNft}>Withdraw Nft</button></div>
         </div>
     ):(
-        <div><button>Claim Your Nft</button></div>
+        <div><button onClick={ClaimNft}>Claim Your Nft</button></div>
     )
 ):(
                                         <div> </div>

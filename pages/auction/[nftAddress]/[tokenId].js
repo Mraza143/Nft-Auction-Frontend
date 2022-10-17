@@ -98,11 +98,45 @@ export default function auction() {
 
     async function WithdrawWinningBidSuccess(tx) {
         await tx.wait(1)
-        console.log("Bid Initialized. Please wait for about 30 seconds to see your bid in Bids Section  of this nft")
+        console.log("You have received the winning bid in your wallet")
         dispatch({
             type: "success",
             message: "Bid has been placed",
             title: "Your bid has been made",
+            position: "topR",
+        })
+    }
+
+
+    async function WithdrawNft() {
+        console.log("Withdrawing Nft after unsuccesful Auction")
+        const WithdrawNftOptions = {
+            abi: nftAuctionAbi,
+            contractAddress: auctionAddress,
+            functionName: "withdrawNft",
+            params: {
+                _nftContractAddress: nftAddress,
+                _tokenId: tokenId,
+            },
+
+
+        }
+
+        await runContractFunction({
+            params: WithdrawNftOptions,
+            onSuccess: WithdrawNftSuccess,
+            onError: (error) => console.log(error),
+        })
+    }
+    //http://localhost:3000/auction/0x07e9610747745651b70da71600525a799b6002a0/2
+
+    async function WithdrawNftSuccess(tx) {
+        await tx.wait(1)
+        console.log("You have received the nft in your wallet as the auction ended without no bids")
+        dispatch({
+            type: "success",
+            message: "You have reeeived the nft",
+            title: "Nft Received",
             position: "topR",
         })
     }
@@ -256,7 +290,7 @@ export default function auction() {
     isOwnedByUser?(
         <div>
         <div><button onClick={WithdrawWinningBid}>Withdraw Winning Bid </button></div>
-        <div><button>Withdraw Nft</button></div>
+        <div><button onClick={WithdrawNft}>Withdraw Nft</button></div>
         </div>
     ):(
         <div><button>Claim Your Nft</button></div>

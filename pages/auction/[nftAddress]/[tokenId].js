@@ -22,6 +22,7 @@ export default function auction() {
     const [date ,setDate]=  useState("");
     const [auctionEnded,setAuctionEnded] = useState(false)
     const [isOwnedByUser,setIsOwnedByUser] = useState(false)
+    const [isAuctionWinner,setisAuctionWinner] = useState(false)
     const {
         data: specificBids,
         loading:loadingBids
@@ -84,8 +85,6 @@ export default function auction() {
                 _nftContractAddress: nftAddress,
                 _tokenId: tokenId,
             },
-
-
         }
 
         await runContractFunction({
@@ -94,8 +93,6 @@ export default function auction() {
             onError: (error) => console.log(error),
         })
     }
-    //http://localhost:3000/auction/0x07e9610747745651b70da71600525a799b6002a0/2
-
     async function WithdrawWinningBidSuccess(tx) {
         await tx.wait(1)
         console.log("You have received the winning bid in your wallet")
@@ -118,8 +115,6 @@ export default function auction() {
                 _nftContractAddress: nftAddress,
                 _tokenId: tokenId,
             },
-
-
         }
 
         await runContractFunction({
@@ -128,7 +123,6 @@ export default function auction() {
             onError: (error) => console.log(error),
         })
     }
-    //http://localhost:3000/auction/0x07e9610747745651b70da71600525a799b6002a0/2
 
     async function WithdrawNftSuccess(tx) {
         await tx.wait(1)
@@ -152,8 +146,6 @@ export default function auction() {
                 _nftContractAddress: nftAddress,
                 _tokenId: tokenId,
             },
-
-
         }
 
         await runContractFunction({
@@ -162,7 +154,6 @@ export default function auction() {
             onError: (error) => console.log(error),
         })
     }
-    //http://localhost:3000/auction/0x07e9610747745651b70da71600525a799b6002a0/2
 
     async function  ClaimNftSuccess(tx) {
         await tx.wait(1)
@@ -190,6 +181,17 @@ export default function auction() {
         abi: nftAuctionAbi,
         contractAddress: auctionAddress,
         functionName: "getStartingTimeOfAuction",
+        params: {
+            _nftContractAddress: nftAddress,
+            _tokenId: tokenId,
+        },
+    })
+
+
+    const { runContractFunction: getWinnerOfAuction } = useWeb3Contract({
+        abi: nftAuctionAbi,
+        contractAddress: auctionAddress,
+        functionName: "getCurrentWinner",
         params: {
             _nftContractAddress: nftAddress,
             _tokenId: tokenId,
@@ -232,6 +234,9 @@ export default function auction() {
         console.log(`seller ${seller}`)
         console.log(account)
         account==seller?.toLowerCase()?setIsOwnedByUser(true):setIsOwnedByUser(false)
+
+        const winner = await getWinnerOfAuction()
+        account==winner?.toLowerCase()?setisAuctionWinner(true): setisAuctionWinner(false)
 
         if (tokenURI) {
             const requestURL = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
@@ -327,7 +332,10 @@ export default function auction() {
         <div><button onClick={WithdrawNft}>Withdraw Nft</button></div>
         </div>
     ):(
-        <div><button onClick={ClaimNft}>Claim Your Nft</button></div>
+        isAuctionWinner?(<div><button onClick={ClaimNft}>Claim Your Nft</button></div>):(
+            <div> </div>
+        )
+        
     )
 ):(
                                         <div> </div>

@@ -297,7 +297,7 @@ export default function auction() {
                                 </div>
                                 <div>
                                     <div className={styles.container}>
-                                        <Form
+                                       {auctionEnded? (<div>This Auction has Ended</div>):( <Form
                                             buttonConfig={{
                                                 theme: "primary",
                                             }}
@@ -313,7 +313,7 @@ export default function auction() {
                                             ]}
                                             title="Make A Bid"
                                             id="Main Form"
-                                        />
+                                        />)}
                                     </div>
                                 </div>
                             </div>

@@ -238,7 +238,9 @@ export default function auction() {
         const currentTime = Math.round(Date.now() / 1000)
         if (startingTime + durationOfAuction < currentTime < currentTime) {
             setAuctionEnded(true)
+            
         }
+        console.log(auctionEnded)
         const seller = await getSellerOfTheNft()
         console.log(`seller ${seller}`)
         console.log(account)
@@ -297,7 +299,7 @@ export default function auction() {
                                 </div>
                                 <div>
                                     <div className={styles.container}>
-                                       {auctionEnded? (<div>This Auction has Ended</div>):( <Form
+                                       {auctionEnded? ( <Form
                                             buttonConfig={{
                                                 theme: "primary",
                                             }}
@@ -313,7 +315,7 @@ export default function auction() {
                                             ]}
                                             title="Make A Bid"
                                             id="Main Form"
-                                        />)}
+                                        />):(<div>This Auction has Ended</div>)}
                                     </div>
                                 </div>
                             </div>

@@ -1,5 +1,5 @@
 
-This is a Next js User Interface to interact with the [Nft Auction smart contract](https://github.com/Mraza143/Auction.sol).
+This is a Next js Dapp to interact with the [Nft Auction smart contract](https://github.com/Mraza143/Auction.sol).
 
 
 
